@@ -1,0 +1,87 @@
+{**
+ * @param string   $basePath web base path
+ * @param array    $flashes  flash messages
+ *}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>{ifset #title}{include title|striptags} | {/ifset}HKFree uživatelský portál</title>
+
+        <!-- Bootstrap -->
+        <link href="{$basePath}/css/bootstrap.min.css" rel="stylesheet"> 
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="{$basePath}/js/jquery.min.js"></script>   
+        <link rel="stylesheet" href="{$basePath}/css/jquery-ui.css" />
+        <script src="{$basePath}/js/jquery-ui.min.js"></script>     
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="{$basePath}/js/bootstrap.min.js"></script>         
+
+        <link rel="stylesheet" media="screen,projection,tv" href="{$basePath}/css/screen.css">      
+        <link rel="stylesheet" media="screen,projection,tv" href="{$basePath}/css/grido.css">
+        <link rel="stylesheet" media="print" href="{$basePath}/css/print.css">
+        <link rel="shortcut icon" href="{$basePath}/favicon.ico">     
+        <script>
+            $(document).ready(function() {
+                $(".datepicker").change(function() {
+                  if($(this).val().indexOf("00:00:00") > -1) $(this).val($(this).val().replace(" 00:00:00", ""));
+                });
+                $(".datepicker").change();
+                $(".datepicker").off("change");
+                 
+                $(".datepicker").datepicker({ dateFormat: "yy-mm-dd" });
+            });
+        </script>    
+	{block head}{/block}
+</head>
+
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{link Homepage:default id=>null}">user.hkfree.org</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{link Uzivatel:show id=>$user->getIdentity()->getId()}">{$user->getIdentity()->nick} ({$user->getIdentity()->getId()})</a></li>
+          </ul>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+			<h4>Moje menu</h4>
+            <li id="udaje"><a href="{link Uzivatel:show id=>$user->getIdentity()->getId()}">Moje údaje</a></li>
+            <li id="udaje"><a href="{link Uzivatel:spravci id=>$user->getIdentity()->getId()}">Můj správce</a></li>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+	  <script> document.documentElement.className+=' js' </script>
+
+	  <div n:foreach="$flashes as $flash" class="alert alert-{ifset $flash->type}{$flash->type}{elseifset $flash->type}info{/ifset}">{$flash->message}</div>
+
+	  {include content}
+        </div>
+      </div>
+    </div>
+	{block scripts}
+	<script src="{$basePath}/js/netteForms.js"></script>
+	<script src="{$basePath}/js/main.js"></script>
+    <script src="{$basePath}/js/grido.js"></script>
+	{/block}
+</body>
+</html>

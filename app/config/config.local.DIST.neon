@@ -1,0 +1,29 @@
+# DEVELOPEMENT
+parameters:
+	urlPrefix: ''
+	debug:
+		https: false
+		fakeUser:
+			userID: 3306
+			userName: 'bkralik'
+	money:
+		login: ''
+		password: ''
+
+# PRODUCTION
+parameters:
+	urlPrefix: '/userdb'   # don't forget to edit www/.htaccess
+	debug:
+		https: false
+		fakeUser: false
+	money:
+		login: ''
+		password: ''
+
+
+database:
+	dsn: 'mysql:host=xxxxxx;dbname=userdb'
+	user: 'userdb'
+	password: ''
+	options:
+		lazy: true

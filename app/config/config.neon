@@ -1,0 +1,46 @@
+#
+# SECURITY WARNING: it is CRITICAL that this file & directory are NOT accessible directly via a web browser!
+#
+# If you don't protect this directory from direct web access, anybody will be able to see your passwords.
+# http://nette.org/security-warning
+#
+parameters:
+
+
+php:
+	date.timezone: Europe/Prague
+
+
+nette:
+	latte:
+		macros:
+			- App\Model\MyMacroSet
+	application:
+		errorPresenter: Error
+		mapping:
+			*: App\*Module\Presenters\*Presenter
+
+	session:
+		expiration: 14 days
+
+
+services:
+	authenticator: App\Model\Authenticator(%debug.fakeUser%)
+	- App\RouterFactory
+	router: @App\RouterFactory::createRouter(%debug.https%, %urlPrefix%)
+	uzivatel: App\Model\Uzivatel
+	typClenstvi: App\Model\TypClenstvi
+	typSpravceOblasti: App\Model\TypSpravceOblasti
+	typPravniFormyUzivatele: App\Model\TypPravniFormyUzivatele
+	zpusobPripojeni: App\Model\ZpusobPripojeni
+	technologiePripojeni: App\Model\TechnologiePripojeni
+	typCestnehoClenstvi: App\Model\TypCestnehoClenstvi
+	ipAdresa: App\Model\IPAdresa
+	oblast: App\Model\Oblast
+	ap: App\Model\AP
+	cc: App\Model\cc
+	subnet: App\Model\Subnet
+	typZarizeni: App\Model\TypZarizeni
+	spravceOblasti: App\Model\SpravceOblasti
+	cestneClenstviUzivatele: App\Model\CestneClenstviUzivatele
+	log: App\Model\Log

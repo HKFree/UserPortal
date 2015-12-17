@@ -62,7 +62,7 @@ class UzivatelPresenter extends BasePresenter
     }
     
     public function actionMoneyActivate() {
-        $id = $this->getParameter('id');
+        $id = $this->getUser()->getIdentity()->getId();
         if($id)
         {
             if($this->accountActivation->activateAccount($this->getUser(), $id))
@@ -75,7 +75,7 @@ class UzivatelPresenter extends BasePresenter
     }
     
     public function actionMoneyReactivate() {
-        $id = $this->getParameter('id');
+        $id = $this->getUser()->getIdentity()->getId();
         if($id)
         {
             $result = $this->accountActivation->reactivateAccount($this->getUser(), $id);
@@ -89,7 +89,7 @@ class UzivatelPresenter extends BasePresenter
     }
     
     public function actionMoneyDeactivate() {
-        $id = $this->getParameter('id');
+        $id = $this->getUser()->getIdentity()->getId();
         if($id)
         {
             if($this->accountActivation->deactivateAccount($this->getUser(), $id))

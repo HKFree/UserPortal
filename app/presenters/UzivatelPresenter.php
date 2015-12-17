@@ -35,8 +35,12 @@ class UzivatelPresenter extends BasePresenter
     private $typZarizeni;
     private $log;
     private $subnet;
+    private $uzivatelskeKonto;
+    private $prichoziPlatba;
+    private $parameters;
+    private $accountActivation;
 
-    function __construct(Model\Subnet $subnet, Model\SpravceOblasti $prava, Model\CestneClenstviUzivatele $cc, Model\TypSpravceOblasti $typSpravce, Model\TypPravniFormyUzivatele $typPravniFormyUzivatele, Model\TypClenstvi $typClenstvi, Model\TypCestnehoClenstvi $typCestnehoClenstvi, Model\ZpusobPripojeni $zpusobPripojeni, Model\TechnologiePripojeni $technologiePripojeni, Model\Uzivatel $uzivatel, Model\IPAdresa $ipAdresa, Model\AP $ap, Model\TypZarizeni $typZarizeni, Model\Log $log) {
+    function __construct(Model\Parameters $parameters, Model\AccountActivation $accActivation, Model\PrichoziPlatba $platba, Model\UzivatelskeKonto $konto, Model\Subnet $subnet, Model\SpravceOblasti $prava, Model\CestneClenstviUzivatele $cc, Model\TypSpravceOblasti $typSpravce, Model\TypPravniFormyUzivatele $typPravniFormyUzivatele, Model\TypClenstvi $typClenstvi, Model\TypCestnehoClenstvi $typCestnehoClenstvi, Model\ZpusobPripojeni $zpusobPripojeni, Model\TechnologiePripojeni $technologiePripojeni, Model\Uzivatel $uzivatel, Model\IPAdresa $ipAdresa, Model\AP $ap, Model\TypZarizeni $typZarizeni, Model\Log $log) {
     	$this->spravceOblasti = $prava;
         $this->cestneClenstviUzivatele = $cc;
         $this->typSpravceOblasti = $typSpravce;
@@ -51,6 +55,50 @@ class UzivatelPresenter extends BasePresenter
     	$this->typZarizeni = $typZarizeni;
         $this->log = $log;
         $this->subnet = $subnet;
+        $this->uzivatelskeKonto = $konto; 
+        $this->prichoziPlatba = $platba; 
+        $this->parameters = $parameters;
+        $this->accountActivation = $accActivation;
+    }
+    
+    public function actionMoneyActivate() {
+        $id = $this->getParameter('id');
+        if($id)
+        {
+            if($this->accountActivation->activateAccount($this->getUser(), $id))
+            {
+                $this->flashMessage('Účet byl aktivován.');
+            }
+            
+            $this->redirect('Uzivatel:show', array('id'=>$id));            
+        }
+    }
+    
+    public function actionMoneyReactivate() {
+        $id = $this->getParameter('id');
+        if($id)
+        {
+            $result = $this->accountActivation->reactivateAccount($this->getUser(), $id);
+            if($result != '')
+            {
+                $this->flashMessage($result);
+            }
+            
+            $this->redirect('Uzivatel:show', array('id'=>$id));  
+        }
+    }
+    
+    public function actionMoneyDeactivate() {
+        $id = $this->getParameter('id');
+        if($id)
+        {
+            if($this->accountActivation->deactivateAccount($this->getUser(), $id))
+            {
+                $this->flashMessage('Účet byl deaktivován.'); 
+            }
+            
+            $this->redirect('Uzivatel:show', array('id'=>$id));  
+        }
     }
     
     public function generatePdf($uzivatel)
@@ -76,28 +124,22 @@ class UzivatelPresenter extends BasePresenter
         $template->nthmesicname = $uzivatel->ZpusobPripojeni_id==2 ? $this->uzivatel->mesicName($uzivatel->zalozen,3) : $this->uzivatel->mesicName($uzivatel->zalozen,1);
         $template->nthmesicdate = $uzivatel->ZpusobPripojeni_id==2 ? $this->uzivatel->mesicDate($uzivatel->zalozen,2) : $this->uzivatel->mesicDate($uzivatel->zalozen,0);
         $ipadrs = $uzivatel->related('IPAdresa.Uzivatel_id')->fetchPairs('id', 'ip_adresa');
-        foreach($ipadrs as $ip)
-        {
-            $subnets = $this->subnet->getSubnetOfIP($ip);
-            if(count($subnets) == 1) {
-                $subnet = $subnets->fetch();
-                if(empty($subnet->subnet)) {
-                    $out[] = array('ip' => $ip, 'subnet' => 'subnet není v databázi', 'gateway' => 'subnet není v databázi', 'mask' => 'subnet není v databázi'); 
-                } elseif( empty($subnet->gateway)) {
-                    $out[] = array('ip' => $ip, 'subnet' => 'subnet není v databázi', 'gateway' => 'subnet není v databázi', 'mask' => 'subnet není v databázi'); 
-                } else {
-                    list($network, $cidr) = explode("/", $subnet->subnet);
-                    $out[] = array('ip' => $ip, 'subnet' => $subnet->subnet, 'gateway' => $subnet->gateway, 'mask' => $this->subnet->CIDRToMask($cidr));  
-                }
+        foreach($ipadrs as $ip) {
+            $subnet = $this->subnet->getSubnetOfIP($ip);
+            
+            if(isset($subnet["error"])) {
+                $errorText = 'subnet není v databázi';
+                $out[] = array('ip' => $ip, 'subnet' => $errorText, 'gateway' => $errorText, 'mask' => $errorText); 
             } else {
-                $out[] = array('ip' => $ip, 'subnet' => 'subnet není v databázi', 'gateway' => 'subnet není v databázi', 'mask' => 'subnet není v databázi'); 
+                $out[] = array('ip' => $ip, 'subnet' => $subnet["subnet"], 'gateway' => $subnet["gateway"], 'mask' => $subnet["mask"]);
             }
         }
-        if(count($ipadrs) == 0)
-        {
+        
+        if(count($ipadrs) == 0) {
             $out[] = array('ip' => 'není přidána žádná ip', 'subnet' => 'subnet není v databázi', 'gateway' => 'subnet není v databázi', 'mask' => 'subnet není v databázi');                
         }
         $template->ips = $out;
+        
         $pdf = new PDFResponse($template);
         $pdf->pageOrientaion = PDFResponse::ORIENTATION_PORTRAIT;
         $pdf->pageFormat = "A4";
@@ -420,6 +462,37 @@ class UzivatelPresenter extends BasePresenter
    	    if($uzivatel = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId()))
         {
             $this->template->u = $uzivatel;
+            
+            $this->template->money_act = ($uzivatel->money_aktivni == 1) ? "ANO" : "NE";
+            $this->template->money_dis = ($uzivatel->money_deaktivace == 1) ? "ANO" : "NE";
+            $posledniPlatba = $uzivatel->related('UzivatelskeKonto.Uzivatel_id')->where('TypPohybuNaUctu_id',1)->order('id DESC')->limit(1);
+            if($posledniPlatba->count() > 0)
+            {
+                $posledniPlatbaData = $posledniPlatba->fetch();
+                $this->template->money_lastpay = ($posledniPlatbaData->datum == null) ? "NIKDY" : ($posledniPlatbaData->datum->format('d.m.Y') . " (" . $posledniPlatbaData->castka . ")");
+            }
+            else
+            {
+                $this->template->money_lastpay = "?";
+            }
+            $posledniAktivace = $uzivatel->related('UzivatelskeKonto.Uzivatel_id')->where('TypPohybuNaUctu_id',array(4, 5))->order('id DESC')->limit(1);
+            if($posledniAktivace->count() > 0)
+            {
+                $posledniAktivaceData = $posledniAktivace->fetch();
+                $this->template->money_lastact = ($posledniAktivaceData->datum == null) ? "NIKDY" : ($posledniAktivaceData->datum->format('d.m.Y') . " (" . $posledniAktivaceData->castka . ")");
+            }
+            else
+            {
+                $this->template->money_lastact = "?";
+            }
+            $stavUctu = $uzivatel->related('UzivatelskeKonto.Uzivatel_id')->sum('castka');
+            if($uzivatel->kauce_mobil > 0)
+            {
+                $this->template->money_bal = ($stavUctu - $uzivatel->kauce_mobil) . ' (kauce: ' . $uzivatel->kauce_mobil . ')';
+            }
+            else{
+                $this->template->money_bal = $stavUctu;
+            }
 
             $ipAdresy = $uzivatel->related('IPAdresa.Uzivatel_id');
 
@@ -436,7 +509,108 @@ class UzivatelPresenter extends BasePresenter
             $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($uzivatel->Ap_id, $this->getUser());
             $this->template->hasCC = $this->cestneClenstviUzivatele->getHasCC($uzivatel->id);
             //$this->template->logy = $this->log->getLogyUzivatele($uid);
+            
+            $this->template->activaceVisible = $uzivatel->money_aktivni == 0 && $uzivatel->money_deaktivace == 0 && ($stavUctu - $uzivatel->kauce_mobil) > $this->parameters->getVyseClenskehoPrispevku();
+            $this->template->reactivaceVisible = ($uzivatel->money_aktivni == 0 && $uzivatel->money_deaktivace == 1 && ($stavUctu - $uzivatel->kauce_mobil) > $this->parameters->getVyseClenskehoPrispevku())
+                                                    || ($uzivatel->money_aktivni == 1 && $uzivatel->money_deaktivace == 1);
+            $this->template->deactivaceVisible = $uzivatel->money_aktivni == 1 && $uzivatel->money_deaktivace == 0;
         }
     }
 
+    public function renderPlatba()
+    {
+        $id = $this->getParameter('id');
+        $pohyb = $this->uzivatelskeKonto->findPohyb(array('PrichoziPlatba_id' => intval($id)));
+        $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($this->uzivatel->getUzivatel($pohyb->Uzivatel_id)->Ap_id, $this->getUser());
+        $this->template->u = $pohyb->Uzivatel;
+        $this->template->p = $this->prichoziPlatba->getPrichoziPlatba($this->getParam('id'));
+    }
+    
+    public function renderAccount()
+    {
+        $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($this->uzivatel->getUzivatel($this->getParam('id'))->Ap_id, $this->getUser());
+        $this->template->u = $this->uzivatel->getUzivatel($this->getParam('id'));
+    }
+    
+    protected function createComponentAccountgrid($name)
+    {
+        $canViewOrEdit = false;
+    	$id = $this->getParameter('id');
+        
+        //\Tracy\Dumper::dump($search);
+
+    	$grid = new \Grido\Grid($this, $name);
+    	$grid->translator->setLang('cs');
+        $grid->setExport('account_export');
+        
+        if($id){  
+            $seznamTransakci = $this->uzivatelskeKonto->getUzivatelskeKontoUzivatele($id);
+
+            $canViewOrEdit = $this->ap->canViewOrEditAP($this->uzivatel->getUzivatel($this->getParam('id'))->Ap_id, $this->getUser());
+            
+        } else {
+            
+            /*if($search)
+            {
+                $seznamTransakci = $this->uzivatel->findUserByFulltext($search,$this->getUser());
+                $canViewOrEdit = $this->ap->canViewOrEditAll($this->getUser());
+            }
+            else
+            {
+                $seznamUzivatelu = $this->uzivatel->getSeznamUzivatelu();
+                $canViewOrEdit = $this->ap->canViewOrEditAll($this->getUser());
+            }
+                        
+            $grid->addColumnText('Ap_id', 'AP')->setCustomRender(function($item){
+                  return $item->ref('Ap', 'Ap_id')->jmeno;
+              })->setSortable();*/
+        }
+        
+        $grid->setModel($seznamTransakci);
+        
+    	$grid->setDefaultPerPage(500);
+        $grid->setPerPageList(array(25, 50, 100, 250, 500, 1000));
+    	$grid->setDefaultSort(array('id' => 'DESC'));
+        
+        $presenter = $this;
+        $grid->setRowCallback(function ($item, $tr) use ($presenter){  
+                if($item->PrichoziPlatba_id)
+                {
+                    $tr->onclick = "window.location='".$presenter->link('Uzivatel:platba', array('id'=>$item->PrichoziPlatba_id))."'";
+                }
+                return $tr;
+            });
+                        
+    	/*$grid->addColumnText('Uzivatel_id', 'UID')->setCustomRender(function($item) use ($presenter)
+        {return Html::el('a')
+            ->href($presenter->link('Uzivatel:show', array('id'=>$item->Uzivatel_id)))
+            ->title($item->Uzivatel_id)
+            ->setText($item->Uzivatel_id);})->setSortable();*/
+            
+        /*$grid->addColumnText('PrichoziPlatba_id', 'Příchozí platba')->setCustomRender(function($item) use ($presenter)
+        {return Html::el('a')
+            ->href($presenter->link('Uzivatel:platba', array('id'=>$item->PrichoziPlatba_id)))
+            ->title($item->PrichoziPlatba_id)
+            ->setText($item->PrichoziPlatba_id);})->setSortable();*/
+            
+        $grid->addColumnText('castka', 'Částka')->setSortable()->setFilterText();
+        
+        $grid->addColumnDate('datum', 'Datum')->setSortable()->setFilterText();
+        
+        $grid->addColumnText('TypPohybuNaUctu_id', 'Typ')->setCustomRender(function($item) {
+            return Html::el('span')
+                    ->alt($item->TypPohybuNaUctu_id)
+                    ->setTitle($item->TypPohybuNaUctu->text)
+                    ->setText($item->TypPohybuNaUctu->text)
+                    ->data("toggle", "tooltip")
+                    ->data("placement", "right");
+            })->setSortable();
+        
+        $grid->addColumnText('poznamka', 'Poznámka')->setCustomRender(function($item){
+                $el = Html::el('span');
+                $el->title = $item->poznamka;
+                $el->setText(Strings::truncate($item->poznamka, 20, $append='…'));
+                return $el;
+                })->setSortable()->setFilterText();
+    }
 }

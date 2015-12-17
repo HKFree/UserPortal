@@ -6,7 +6,12 @@
     <a href="{link Uzivatel:edit id=>$u->id}" class="btn btn-default btn-sm" role="button"><i class="glyphicon glyphicon-pencil icon-pencil"></i> Editovat</a>
     <a href="{link Uzivatel:exportPdf id=>$u->id}" class="btn btn-default btn-sm" role="button">Registrační formulář</a>
     <a href="{link Uzivatel:exportAndSendRegForm id=>$u->id}" class="btn btn-default btn-sm" role="button">Odeslat registrační formulář e-mailem</a>
-    <a href="https://money.hkfree.org/user.php?a=1&b={$u->id}" class="btn btn-default btn-sm" role="button"><i class="glyphicon glyphicon-arrow-right"></i> Money</a>
+    <div style="margin-top:3px;">
+    <a href="{link Uzivatel:account id=>$u->id}" class="btn btn-default btn-sm" role="button"><i class="glyphicon glyphicon-usd"></i> Přehled plateb</a>
+    {if $activaceVisible}<a href="{link Uzivatel:moneyActivate id=>$u->id}" class="btn btn-success btn-sm" role="button"><i class="glyphicon glyphicon-ok-circle"></i> Aktivace</a>{/if}
+    {if $reactivaceVisible}<a href="{link Uzivatel:moneyReactivate id=>$u->id}" class="btn btn-success btn-sm" role="button"><i class="glyphicon glyphicon-ok-circle"></i> Reaktivace</a>{/if}
+    {if $deactivaceVisible}<a href="{link Uzivatel:moneyDeactivate id=>$u->id}" class="btn btn-danger btn-sm" role="button"><i class="glyphicon glyphicon-remove-circle"></i> Deaktivace</a>{/if}
+    </div>
     {/if}
 
     <br><br>
@@ -38,6 +43,14 @@
         <tr><td colspan="2">&nbsp;</td></tr>
 
         <tr><th>Rok narození</th><td>{$u->rok_narozeni}</td></tr>
+        <tr><td colspan="2">&nbsp;</td></tr>
+        
+        <tr><th>Aktivní</th><td>{$money_act}</td></tr>
+        <tr><th>Deaktivace</th><td>{$money_dis}</td></tr>
+        <tr><th>Poslední platba</th><td>{$money_lastpay}</td></tr>
+        <tr><th>Poslední aktivace</th><td>{$money_lastact}</td></tr>
+        <tr><th>Stav účtu</th><td>{$money_bal}</td></tr>
+        <tr><td colspan="2">&nbsp;</td></tr>
                
     {/if}
     </table>

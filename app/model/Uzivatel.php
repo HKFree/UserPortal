@@ -18,11 +18,6 @@ class Uzivatel extends Table
     */
     protected $tableName = 'Uzivatel';
 
-    public function getSeznamUzivatelu()
-    {
-      return($this->findAll());
-    }
-    
     public function getSeznamSpravcuUzivatele($id_uzivatel)
     {
         $context = new Context($this->connection);
@@ -36,6 +31,21 @@ WHERE U.id ='.$id_uzivatel)
                         ->fetchAll();
     }
     
+    public function getSeznamUzivatelu()
+    {
+      return($this->findAll());
+    }
+    
+    public function getFormatovanySeznamNezrusenychUzivatelu()
+    {
+      $vsichni = $this->findAll()->where('TypClenstvi_id>1')->fetchAll();
+      $uss = array();
+        foreach ($vsichni as $uzivatel) {
+            $uss[$uzivatel->id] = $uzivatel->id . ' - ' . $uzivatel->nick . ' - ' . $uzivatel->jmeno . ' ' . $uzivatel->prijmeni;
+		}
+		return($uss);
+    }
+
     public function findUserByFulltext($search, $Uzivatel)
     {
         //mobil a email pouze pro ty co maji prava
@@ -58,7 +68,6 @@ WHERE U.id ='.$id_uzivatel)
                                             LEFT JOIN  IPAdresa ON Uzivatel.id = IPAdresa.Uzivatel_id 
                                             WHERE (
                                             Uzivatel.id LIKE '$search%'
-                                            OR  IPAdresa.ip_adresa LIKE '$search%'
                                             ) LIMIT 1")->fetchField();
         if(!empty($partialMatchId))
         {
@@ -67,20 +76,30 @@ WHERE U.id ='.$id_uzivatel)
         
         if (!$Uzivatel->isInRole('TECH') && !$Uzivatel->isInRole('VV')) {
             $uid = $Uzivatel->getIdentity()->getId();
-            $restriction = " AND (SpravceOblasti.Uzivatel_id = $uid AND od<NOW() AND (do IS NULL OR do>NOW()))";
-        }
-        $secureMatchId = $context->query("SELECT Uzivatel.id FROM Uzivatel 
+            $secureMatchId = $context->query("SELECT Uzivatel.id FROM Uzivatel 
                                             JOIN Ap ON Ap.id = Uzivatel.Ap_id
                                             JOIN SpravceOblasti ON Ap.Oblast_id = SpravceOblasti.Oblast_id
                                             WHERE (
-                                            telefon LIKE '$search%'
-                                            OR  email LIKE '$search%'
-                                            OR  email2 LIKE '$search%'
-                                            )$restriction LIMIT 1")->fetchField();
-        if(!empty($secureMatchId))
-        {
-            return($this->findBy(array('id' => $secureMatchId)));
+                                            Uzivatel.telefon LIKE '%$search%'
+                                            OR Uzivatel.email LIKE '%$search%'
+                                            OR Uzivatel.email2 LIKE '%$search%'
+                                            OR CONVERT(Uzivatel.jmeno USING utf8) LIKE '%$search%' 
+                                            OR CONVERT(Uzivatel.prijmeni USING utf8) LIKE '%$search%'
+                                            OR CONVERT(Uzivatel.ulice_cp USING utf8) LIKE '%$search%'
+                                            ) AND (SpravceOblasti.Uzivatel_id = $uid AND od<NOW() AND (do IS NULL OR do>NOW()))")->fetchPairs('id','id');
+            
+            if(!empty($secureMatchId))
+            {
+                //\Tracy\Dumper::dump($secureMatchId);
+                //\Tracy\Dumper::dump(array_values($secureMatchId));
+                return($this->findBy(array('id' => array_values($secureMatchId))));
+            }
         }
+        else{
+            return $this->findAll()->where("telefon LIKE ? OR email LIKE ? OR email2 LIKE ? OR CONVERT(jmeno USING utf8) LIKE ? OR CONVERT(prijmeni USING utf8) LIKE ? OR CONVERT(ulice_cp USING utf8) LIKE ?", '%'.$search.'%', '%'.$search.'%', '%'.$search.'%', '%'.$search.'%', '%'.$search.'%', '%'.$search.'%')->fetchAll();
+        }
+        
+        
         return($this->findBy(array('id' => 0)));
     }
     
@@ -89,16 +108,6 @@ WHERE U.id ='.$id_uzivatel)
 	    return($this->findBy(array('Ap_id' => $idAP)));
     }
     
-    public function getSeznamUIDUzivateluZAP($idAP)
-    {
-	    return($this->findBy(array('Ap_id' => $idAP))->fetchPairs('id','id'));
-    }
-    
-    public function getSeznamUIDUzivatelu()
-    {
-	    return($this->findAll()->fetchPairs('id','id'));
-    }
-
     public function getUzivatel($id)
     {
       return($this->find($id));
@@ -116,7 +125,7 @@ WHERE U.id ='.$id_uzivatel)
     * Note: the $add_dashes option will increase the length of the password by
     * floor(sqrt(N)) characters.
     */
-    public function generateStrongPassword($length = 9, $add_dashes = false, $available_sets = 'luds')
+    public function generateStrongPassword($length = 9, $add_dashes = false, $available_sets = 'lud')
     {
         $sets = array();
         if (strpos($available_sets, 'l') !== false) {
@@ -174,7 +183,7 @@ ORDER BY t1.id LIMIT 1')->fetchField();
     
     public function getDuplicateEmailArea($email, $id)
     {
-        $existujici = $this->findAll()->where('email = ? OR email2 = ?', $email, $email)->where('id != ?', $id)->fetch();
+        $existujici = $this->findAll()->where('email = ? OR email2 = ?', $email, $email)->where('id != ?', $id)->where('TypClenstvi_id > 1')->fetch();
         if($existujici)
         {
             return $existujici->ref('Ap', 'Ap_id')->jmeno . " (" . $existujici->ref('Ap', 'Ap_id')->id . ")";
@@ -184,7 +193,7 @@ ORDER BY t1.id LIMIT 1')->fetchField();
     
     public function getDuplicatePhoneArea($telefon, $id)
     {
-        $existujici = $this->findAll()->where('telefon = ?', $telefon)->where('id != ?', $id)->fetch();
+        $existujici = $this->findAll()->where('telefon = ?', $telefon)->where('id != ?', $id)->where('TypClenstvi_id > 1')->fetch();
         if($existujici)
         {
             return $existujici->ref('Ap', 'Ap_id')->jmeno . " (" . $existujici->ref('Ap', 'Ap_id')->id . ")";

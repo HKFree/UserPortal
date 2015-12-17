@@ -20,7 +20,7 @@ class SpravceOblasti extends Table
 
     public function getOblastiSpravce($userID)
     {
-        $OblastiSpravce = $this->findAll()->where('Uzivatel_id', $userID)->where('Oblast_id IS NOT NULL')->fetchAll();
+        $OblastiSpravce = $this->findAll()->where('Uzivatel_id', $userID)->where('Oblast_id IS NOT NULL')->order("Oblast.jmeno")->fetchAll();
         $out = array();
         foreach ($OblastiSpravce as $key => $value) {
             $out[$key] = $value->Oblast;
@@ -84,7 +84,7 @@ class SpravceOblasti extends Table
              ->addCondition(Form::FILLED)
              ->addRule(Form::PATTERN, 'prosím zadejte datum ve formátu RRRR-MM-DD', '^\d{4}-\d{2}-\d{1,2}$');
              
-        $right->addText('do', 'Platnost od:')
+        $right->addText('do', 'Platnost do:')
              //->setType('date')
              ->setAttribute('class', 'datepicker ip')
              ->setAttribute('data-date-format', 'YYYY/MM/DD')

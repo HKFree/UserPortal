@@ -1,0 +1,19 @@
+{* Latte template *}
+
+{block content}
+
+<h1>Jak platit členský příspěvek</h1>
+
+{ifset $u}
+
+<p>Bankovním převodem (290 Kč)
+<p>Číslo účtu HKFree je <strong>2200229191 / 2010</strong> (FIO Banka)</p>
+<p>Variabilní symbol - <strong>{$u->id}</strong></p>
+<p>Specifický symbol - <strong>{$u->id}</strong></p>
+<p>Zpráva pro příjemce - Členský príspěvek hkfree.org</p>
+<p>Na každý měsíc se platí <strong>290,-</strong> Kč předem.</p>
+<p>290,- Kč posílejte vždy tak, aby do 20. dne předchozího měsíce byly peníze již na účtu HKfree. (příklad: na listopad zaplatit do 17. října 1-2dny počítejte s převodem mezi bankami a jeden den trvá než se platby dostanou do výpisů HKfree).
+
+{/ifset}
+
+{/block}

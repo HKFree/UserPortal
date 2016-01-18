@@ -22,4 +22,12 @@ class HomepagePresenter extends BasePresenter
 	public function renderDefault()
 	{
 	}
+    
+    public function renderPlatba()
+	{
+        if($uzivatel = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId()))
+        {
+            $this->template->u = $uzivatel;
+        }
+	}
 }

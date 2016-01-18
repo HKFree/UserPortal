@@ -371,31 +371,20 @@ class UzivatelPresenter extends BasePresenter
         
     	// Zpracujeme nejdriv uzivatele
     	if(empty($values->id)) {
-            $values->regform_downloaded_password_sent = 0;
-            $values->zalozen = new Nette\Utils\DateTime;
-            $values->heslo = $this->uzivatel->generateStrongPassword();
-            $values->id = $this->uzivatel->getNewID();
-            $idUzivatele = $this->uzivatel->insert($values)->id;
-            $this->log->logujInsert($values, 'Uzivatel', $log);
-            
-            $hash = base64_encode($values->id.'-'.md5($this->context->parameters["salt"].$values->zalozen));
-            
-            $so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
-            $mail = new Message;
-            $mail->setFrom($so->jmeno.' '.$so->prijmeni.' <'.$so->email.'>')
-                ->addTo($values->email)
-                ->setSubject('Žádost o potvrzení registrace člena hkfree.org z.s.')
-                ->setHTMLBody('Dobrý den,<br><br>pro dokončení registrace člena hkfree.org z.s. je nutné kliknout na '
-                        . 'následující odkaz:<br><br><a href="http://userdb.hkfree.org/userdb/uzivatel/confirm/'.$hash.'">http://userdb.hkfree.org/userdb/uzivatel/confirm/'.$hash.'</a><br><br>S pozdravem hkfree.org z.s.');
-            $mailer = new SendmailMailer;
-            $mailer->send($mail);
-
-            $this->flashMessage('E-mail s žádostí o potvrzení registrace byl odeslán.');
-            
+            $form->addError('Tato funkce zde není dostupná');            
         } else {
             $olduzivatel = $this->uzivatel->getUzivatel($idUzivatele);
     	    $this->uzivatel->update($idUzivatele, $values);
             $this->log->logujUpdate($olduzivatel, $values, 'Uzivatel', $log);
+            
+            $so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
+            $mail = new Message;
+            $mail->setFrom($values->jmeno.' '.$values->prijmeni.' <'.$values->email.'>')
+                ->addTo($so->email)
+                ->setSubject('Změna údajů člena prostřednictvím uživatelského portálu')
+                ->setHTMLBody('Na uživatelském portálu moje.hkfree.org došlo ke změně údajů člena: '.$idUzivatele);
+            $mailer = new SendmailMailer;
+            $mailer->send($mail);
         }
             	
         $this->log->loguj('Uzivatel', $idUzivatele, $log);

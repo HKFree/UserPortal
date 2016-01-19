@@ -245,7 +245,7 @@ class UzivatelPresenter extends BasePresenter
     {
         if($this->getParam('id') == $this->getUser()->getIdentity()->getId() && $uzivatel = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId()))
     	    {
-    		    $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($uzivatel->Ap_id, $this->getUser());
+    		    $this->template->canViewOrEdit = $this->getUser()->getIdentity()->getId() == $uzivatel->id;
     	    }
 	        else
           {
@@ -442,12 +442,12 @@ class UzivatelPresenter extends BasePresenter
             {
                 $this->template->adresyline = null;
             }
-            $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($uzivatel->Ap_id, $this->getUser());
+            $this->template->canViewOrEdit = $this->getUser()->getIdentity()->getId() == $uzivatel->id;
             $this->template->hasCC = $this->cestneClenstviUzivatele->getHasCC($uzivatel->id);
             //$this->template->logy = $this->log->getLogyUzivatele($uid);
             
-            $this->template->activaceVisible = $uzivatel->money_aktivni == 0 && $uzivatel->money_deaktivace == 0 && ($stavUctu - $uzivatel->kauce_mobil) > $this->parameters->getVyseClenskehoPrispevku();
-            $this->template->reactivaceVisible = ($uzivatel->money_aktivni == 0 && $uzivatel->money_deaktivace == 1 && ($stavUctu - $uzivatel->kauce_mobil) > $this->parameters->getVyseClenskehoPrispevku())
+            $this->template->activaceVisible = $uzivatel->money_aktivni == 0 && $uzivatel->money_deaktivace == 0 && ($stavUctu - $uzivatel->kauce_mobil) >= $this->parameters->getVyseClenskehoPrispevku();
+            $this->template->reactivaceVisible = ($uzivatel->money_aktivni == 0 && $uzivatel->money_deaktivace == 1 && ($stavUctu - $uzivatel->kauce_mobil) >= $this->parameters->getVyseClenskehoPrispevku())
                                                     || ($uzivatel->money_aktivni == 1 && $uzivatel->money_deaktivace == 1);
             $this->template->deactivaceVisible = $uzivatel->money_aktivni == 1 && $uzivatel->money_deaktivace == 0;
         }
@@ -464,7 +464,7 @@ class UzivatelPresenter extends BasePresenter
     
     public function renderAccount()
     {
-        $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($this->uzivatel->getUzivatel($this->getParam('id'))->Ap_id, $this->getUser());
+        $this->template->canViewOrEdit = $this->uzivatel->getUzivatel($this->getParam('id'))->id == $this->getUser()->getIdentity()->getId();
         $this->template->u = $this->uzivatel->getUzivatel($this->getParam('id'));
     }
     
@@ -482,7 +482,7 @@ class UzivatelPresenter extends BasePresenter
         if($id){  
             $seznamTransakci = $this->uzivatelskeKonto->getUzivatelskeKontoUzivatele($id);
 
-            $canViewOrEdit = $this->ap->canViewOrEditAP($this->uzivatel->getUzivatel($this->getParam('id'))->Ap_id, $this->getUser());
+            $canViewOrEdit = $this->uzivatel->getUzivatel($this->getParam('id'))->id == $this->getUser()->getIdentity()->getId();
             
         } else {
             

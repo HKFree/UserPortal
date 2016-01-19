@@ -196,11 +196,13 @@ class UzivatelPresenter extends BasePresenter
     	$grid->setDefaultSort(array('zalozen' => 'ASC'));
         
         $presenter = $this;
+        /*   Uživatel nepotřebuje vidět UID správce...
     	$grid->addColumnText('id', 'UID')->setCustomRender(function($item) use ($presenter)
         {return Html::el('a')
             ->href($presenter->link('Uzivatel:show', array('id'=>$item->id)))
             ->title($item->id)
-            ->setText($item->id);})->setSortable();
+            ->setText($item->id);})->setSortable();      */
+            
         $grid->addColumnText('nick', 'Nick')->setSortable();
 
         $grid->addColumnText('jmeno', 'Jméno a příjmení')->setCustomRender(function($item){                

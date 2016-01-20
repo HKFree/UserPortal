@@ -195,22 +195,19 @@ class UzivatelPresenter extends BasePresenter
         $grid->setPerPageList(array(25, 50, 100, 250, 500, 1000));
     	$grid->setDefaultSort(array('zalozen' => 'ASC'));
         
-        $presenter = $this;
-        /*   Uživatel nepotřebuje vidět UID správce...
-    	$grid->addColumnText('id', 'UID')->setCustomRender(function($item) use ($presenter)
-        {return Html::el('a')
-            ->href($presenter->link('Uzivatel:show', array('id'=>$item->id)))
-            ->title($item->id)
-            ->setText($item->id);})->setSortable();      */
-            
         $grid->addColumnText('nick', 'Nick')->setSortable();
 
         $grid->addColumnText('jmeno', 'Jméno a příjmení')->setCustomRender(function($item){                
                 return $item->jmeno . ' '. $item->prijmeni;
-            })->setSortable();
+            });
            
-        $grid->addColumnEmail('email', 'E-mail')->setSortable();
-        $grid->addColumnText('telefon', 'Telefon')->setSortable();
+        $grid->addColumnEmail('email', 'E-mail');
+        $grid->addColumnText('telefon', 'Telefon')->setCustomRender(function($item){ 
+            if($item->publicPhone)
+                return $item->telefon;
+            else
+                return "N/A";
+            });
 
     }
     

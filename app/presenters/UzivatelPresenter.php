@@ -190,12 +190,30 @@ class UzivatelPresenter extends BasePresenter
         $seznamSpravcu = $this->uzivatel->getSeznamSpravcuUzivatele($this->getUser()->getIdentity()->getId());
         
         $grid->setModel($seznamSpravcu);
+        $grid->setFilterRenderType(\Grido\Components\Filters\Filter::RENDER_INNER);
         
     	$grid->setDefaultPerPage(100);
         $grid->setPerPageList(array(25, 50, 100, 250, 500, 1000));
     	$grid->setDefaultSort(array('zalozen' => 'ASC'));
         
-        $grid->addColumnText('nick', 'Nick')->setSortable();
+        $thisspravceOblasti = $this->spravceOblasti;
+        
+        $grid->setRowCallback(function ($item, $tr) use ($thisspravceOblasti){                
+                $role = $thisspravceOblasti->getUserRole($item->id, $item->Ap_id);
+                if($role == "SO")
+                {
+                  $tr->class[] = 'cestne';
+                }          
+                return $tr;
+            });
+        
+        $grid->addColumnText('nick', 'Nick');
+        
+        
+        $grid->addColumnText('id', 'Funkce')->setCustomRender(function($item) use ($thisspravceOblasti){  
+                $role = $thisspravceOblasti->getUserRole($item->id, $item->Ap_id);
+                return $role == "SO" ? "Správce oblasti" : "Zástupce správce oblasti";
+            });
 
         $grid->addColumnText('jmeno', 'Jméno a příjmení')->setCustomRender(function($item){                
                 return $item->jmeno . ' '. $item->prijmeni;

@@ -474,7 +474,7 @@ class UzivatelPresenter extends BasePresenter
     public function renderPlatba()
     {
         $id = $this->getParameter('id');
-        $pohyb = $this->uzivatelskeKonto->findPohyb(array('PrichoziPlatba_id' => intval($id)));
+        $pohyb = $this->uzivatelskeKonto->findPohyb(array('PrichoziPlatba_id' => intval($id), 'Uzivatel_id NOT' => null));
         $this->template->canViewOrEdit = $this->ap->canViewOrEditAP($this->uzivatel->getUzivatel($pohyb->Uzivatel_id)->Ap_id, $this->getUser());
         $this->template->u = $pohyb->Uzivatel;
         $this->template->p = $this->prichoziPlatba->getPrichoziPlatba($this->getParam('id'));
@@ -524,7 +524,7 @@ class UzivatelPresenter extends BasePresenter
         
     	$grid->setDefaultPerPage(500);
         $grid->setPerPageList(array(25, 50, 100, 250, 500, 1000));
-    	$grid->setDefaultSort(array('id' => 'DESC'));
+    	$grid->setDefaultSort(array('datum_cas' => 'DESC'));
         
         $presenter = $this;
         $grid->setRowCallback(function ($item, $tr) use ($presenter){  
@@ -549,7 +549,7 @@ class UzivatelPresenter extends BasePresenter
             
         $grid->addColumnText('castka', 'Částka')->setSortable()->setFilterText();
         
-        $grid->addColumnDate('datum', 'Datum')->setSortable()->setFilterText();
+        $grid->addColumnDate('datum_cas', 'Datum')->setDateFormat(\Grido\Components\Columns\Date::FORMAT_DATE)->setSortable()->setFilterText();
         
         $grid->addColumnText('TypPohybuNaUctu_id', 'Typ')->setCustomRender(function($item) {
             return Html::el('span')
@@ -563,7 +563,7 @@ class UzivatelPresenter extends BasePresenter
         $grid->addColumnText('poznamka', 'Poznámka')->setCustomRender(function($item){
                 $el = Html::el('span');
                 $el->title = $item->poznamka;
-                $el->setText(Strings::truncate($item->poznamka, 20, $append='…'));
+                $el->setText(Strings::truncate($item->poznamka, 100, $append='…'));
                 return $el;
                 })->setSortable()->setFilterText();
     }

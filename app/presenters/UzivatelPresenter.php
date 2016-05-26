@@ -271,6 +271,11 @@ class UzivatelPresenter extends BasePresenter
           }
     }
     
+    public function renderChangepassword()
+    {
+        
+    }
+    
    public function renderConfirm()
     {
         if($this->getParam('id'))
@@ -295,6 +300,86 @@ class UzivatelPresenter extends BasePresenter
         else {
             $this->template->stav = false;
         }
+    }
+    
+    protected function createComponentChngpwd() {
+    
+    	$form = new Form($this, 'chngpwd');
+        $form->addText('id', 'ID člena', 5)->setRequired('Zadejte ID člena');
+        $form->addText('email', 'Email', 30)->setRequired('Zadejte email')->addRule(Form::EMAIL, 'Musíte zadat platný email');
+
+    	$form->addSubmit('save', 'Zaslat nové heslo')
+    		->setAttribute('class', 'btn btn-success btn-xs btn-white');
+    	$form->onSuccess[] = array($this, 'chngpwdFormSucceded');
+        $form->onValidate[] = array($this, 'validateChngpwdForm');
+    
+    	// pokud editujeme, nacteme existujici ipadresy
+    	$submitujeSe = ($form->isAnchored() && $form->isSubmitted());
+        if($this->getParam('id') && !$submitujeSe) {
+    	    $values = $this->uzivatel->getUzivatel($this->getParam('id'));
+    	    if($values) {
+                $form->setValues($values);
+    	    }
+    	}                
+    
+    	return $form;
+    }
+    
+    public function validateChngpwdForm($form)
+    {
+        $values = $form->getValues();
+
+        $duplMail = $this->uzivatel->getExistingEmailArea($values->email, $values->id);
+        
+        if (!$duplMail) {
+            $form->addError('Uživatel s tímto ID má jiný email!');
+        }
+    }
+    
+    public function chngpwdFormSucceded($form, $values) {
+
+        if(empty($values->id)) {
+            $form->addError('ID člena nebylo vyplněno');            
+        } else {
+
+            if($uzivatel = $this->uzivatel->getUzivatel($values->id))
+            {
+                $heslo = $this->uzivatel->generateStrongPassword();
+                $this->uzivatel->update($uzivatel->id, array('heslo'=>$heslo));
+                
+                $mail = new Message;
+                $mail->setFrom('moje@hkfree.org')
+                    ->addTo($uzivatel->email)
+                    ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
+                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org bylo vygenerováno nové heslo člena: '.$uzivatel->id.' Heslo: '.$heslo);
+                $mailer = new SendmailMailer;
+                $mailer->send($mail);
+                
+                //zalogovat udalost
+                $log = array();
+                $log[] = array(
+                        'sloupec'=>'Uzivatel.heslo',
+                        'puvodni_hodnota'=>NULL,
+                        'nova_hodnota'=>'uživatel si změnil heslo',
+                        'akce'=>'U'
+                    );
+                $this->log->loguj('Uzivatel', $uzivatel->id, $log);
+                
+                $this->flashMessage('E-mail s heslem byl odeslán.');
+                
+                //TODO: tohle bude spatne
+                /*$so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
+                $mail = new Message;
+                $mail->setFrom($uzivatel->jmeno.' '.$uzivatel->prijmeni.' <'.$uzivatel->email.'>')
+                    ->addTo($so->email)
+                    ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
+                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org došlo ke změně hesla člena: '.$uzivatel->id);
+                $mailer = new SendmailMailer;
+                $mailer->send($mail);*/
+            }
+        }
+
+    	return true;
     }
 
     protected function createComponentUzivatelForm() {
@@ -395,6 +480,7 @@ class UzivatelPresenter extends BasePresenter
     	    $this->uzivatel->update($idUzivatele, $values);
             $this->log->logujUpdate($olduzivatel, $values, 'Uzivatel', $log);
             
+            //TODO: tohle bude spatne
             $so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
             $mail = new Message;
             $mail->setFrom($values->jmeno.' '.$values->prijmeni.' <'.$values->email.'>')

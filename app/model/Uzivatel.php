@@ -181,6 +181,16 @@ WHERE t2.id IS NULL AND t1.id>7370
 ORDER BY t1.id LIMIT 1')->fetchField();
     }
     
+    public function getExistingEmailArea($email, $id)
+    {
+        $existujici = $this->findAll()->where('email = ? OR email2 = ?', $email, $email)->where('id = ?', $id)->fetch();
+        if($existujici)
+        {
+            return $existujici->ref('Ap', 'Ap_id')->jmeno . " (" . $existujici->ref('Ap', 'Ap_id')->id . ")";
+        }
+        return null;
+    }
+    
     public function getDuplicateEmailArea($email, $id)
     {
         $existujici = $this->findAll()->where('email = ? OR email2 = ?', $email, $email)->where('id != ?', $id)->where('TypClenstvi_id > 1')->fetch();

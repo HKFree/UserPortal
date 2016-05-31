@@ -361,9 +361,9 @@ class UzivatelPresenter extends BasePresenter
                         'sloupec'=>'Uzivatel.heslo',
                         'puvodni_hodnota'=>NULL,
                         'nova_hodnota'=>'uživatel si změnil heslo',
-                        'akce'=>'U'
+                        'akce'=>'U'                      
                     );
-                $this->log->loguj('Uzivatel', $uzivatel->id, $log);
+                $this->log->logujAnonymous('Uzivatel', $uzivatel->id, $log);
                 
                 $this->flashMessage('E-mail s heslem byl odeslán.');
                 

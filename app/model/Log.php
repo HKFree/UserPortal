@@ -180,4 +180,30 @@ class Log extends Table
         
         return($this->insert($toInsert));
     }
+    
+    public function logujAnonymous($tabulka, $tabulka_id, $data)
+    {
+        if(!is_array($data) || count($data) == 0)
+            return(true);
+        
+        // Je bezpodminecne nutne mit stejny cas pro vsechny polozky, proto se 
+        // vytvari uz tady a ne az triggerem v DB!
+        $ted = new Nette\Utils\DateTime;
+        
+        $spolecne = array(
+            'Uzivatel_id' => 1,
+            'ip_adresa' => $_SERVER['REMOTE_ADDR'],
+            'tabulka' => $tabulka,
+            'tabulka_id' => $tabulka_id,
+            'datum' => $ted
+        );
+
+        $toInsert = array();
+        foreach($data as $radek)
+        {
+           $toInsert[] = array_merge($radek, $spolecne);
+        }
+        
+        return($this->insert($toInsert));
+    }
 }

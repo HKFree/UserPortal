@@ -195,7 +195,7 @@ class UzivatelPresenter extends BasePresenter
         
     	$grid->setDefaultPerPage(100);
         $grid->setPerPageList(array(25, 50, 100, 250, 500, 1000));
-    	$grid->setDefaultSort(array('zalozen' => 'ASC'));
+    	$grid->setDefaultSort(array('rank' => 'ASC'));
         
         $thisspravceOblasti = $this->spravceOblasti;
         

@@ -276,6 +276,111 @@ class UzivatelPresenter extends BasePresenter
         
     }
     
+    public function renderChangeknownpassword()
+    {
+        if($this->getParam('id') == $this->getUser()->getIdentity()->getId() && $uzivatel = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId()))
+    	    {
+    		    $this->template->canViewOrEdit = $this->getUser()->getIdentity()->getId() == $uzivatel->id;
+    	    }
+	        else
+          {
+            $this->template->canViewOrEdit = false;
+          }
+    }
+    
+    protected function createComponentChngknownpwd() {
+    
+    	$form = new Form($this, 'chngknownpwd');
+        $form->addHidden('id');
+        $form->addPassword('hesloold', 'Staré heslo', 5)->setRequired('Zadejte staré heslo');
+        $form->addPassword('heslonew', 'Nové heslo', 100)->setRequired('Zadejte nové heslo');
+        $form->addPassword('heslonew2', 'Nové heslo znovu', 100)->setRequired('Znovu zadejte nové heslo');
+
+    	$form->addSubmit('save', 'Uložit nové heslo')
+    		->setAttribute('class', 'btn btn-success btn-xs btn-white');
+    	$form->onSuccess[] = array($this, 'chngknownpwdFormSucceded');
+        $form->onValidate[] = array($this, 'validateChngknownpwdForm');
+    
+    	// pokud editujeme, nacteme existujici ipadresy
+    	$submitujeSe = ($form->isAnchored() && $form->isSubmitted());
+        if($this->getParam('id') && !$submitujeSe) {
+    	    $values = $this->uzivatel->getUzivatel($this->getParam('id'));
+    	    if($values) {
+                $form->setValues($values);
+    	    }
+    	}                
+    
+    	return $form;
+    }
+    
+    public function validateChngknownpwdForm($form)
+    {
+        $values = $form->getValues();
+
+      
+        if($uzivatel = $this->uzivatel->getUzivatel($values->id))
+        {
+            if($uzivatel->heslo != $values->hesloold)
+            {
+               $form->addError('Staré heslo není správné!'); 
+            }
+            
+            if($values->heslonew != $values->heslonew2)
+            {
+               $form->addError('Nové heslo se neshoduje!'); 
+            }
+        }
+        else
+        {
+            $form->addError('Člen s tímto ID nenalezen!');
+        }
+    }
+    
+    public function chngknownpwdFormSucceded($form, $values) {
+
+        if(empty($values->id)) {
+            $form->addError('ID člena nebylo vyplněno');            
+        } else {
+
+            if($uzivatel = $this->uzivatel->getUzivatel($values->id))
+            {
+                $this->uzivatel->update($uzivatel->id, array('heslo'=>$values->heslonew));
+                
+                $mail = new Message;
+                $mail->setFrom('moje@hkfree.org')
+                    ->addTo($uzivatel->email)
+                    ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
+                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org bylo změněno heslo člena: '.$uzivatel->id.'. Heslo bude funkční do 5ti minut.');
+                $mailer = new SendmailMailer;
+                $mailer->send($mail);
+                
+                //zalogovat udalost
+                $log = array();
+                $log[] = array(
+                        'sloupec'=>'Uzivatel.heslo',
+                        'puvodni_hodnota'=>NULL,
+                        'nova_hodnota'=>'uživatel si změnil heslo na vlastní',
+                        'akce'=>'U'                      
+                    );
+                $this->log->loguj('Uzivatel', $uzivatel->id, $log);
+                
+                $this->flashMessage('Heslo bylo změněno.');
+                
+                //TODO: tohle bude spatne
+                /*$so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
+                $mail = new Message;
+                $mail->setFrom($uzivatel->jmeno.' '.$uzivatel->prijmeni.' <'.$uzivatel->email.'>')
+                    ->addTo($so->email)
+                    ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
+                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org došlo ke změně hesla člena: '.$uzivatel->id);
+                $mailer = new SendmailMailer;
+                $mailer->send($mail);*/
+            }
+        }
+
+    	return true;
+    }
+    
    public function renderConfirm()
     {
         if($this->getParam('id'))
@@ -314,13 +419,13 @@ class UzivatelPresenter extends BasePresenter
         $form->onValidate[] = array($this, 'validateChngpwdForm');
     
     	// pokud editujeme, nacteme existujici ipadresy
-    	$submitujeSe = ($form->isAnchored() && $form->isSubmitted());
+    	/*$submitujeSe = ($form->isAnchored() && $form->isSubmitted());
         if($this->getParam('id') && !$submitujeSe) {
     	    $values = $this->uzivatel->getUzivatel($this->getParam('id'));
     	    if($values) {
                 $form->setValues($values);
     	    }
-    	}                
+    	}    */            
     
     	return $form;
     }
@@ -351,7 +456,7 @@ class UzivatelPresenter extends BasePresenter
                 $mail->setFrom('moje@hkfree.org')
                     ->addTo($uzivatel->email)
                     ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
-                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org bylo vygenerováno nové heslo člena: '.$uzivatel->id.' Heslo: '.$heslo);
+                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org bylo vygenerováno nové heslo člena: '.$uzivatel->id.'. Heslo bude funkční do 5ti minut. Heslo: '.$heslo);
                 $mailer = new SendmailMailer;
                 $mailer->send($mail);
                 

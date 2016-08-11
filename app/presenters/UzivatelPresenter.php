@@ -160,6 +160,8 @@ class UzivatelPresenter extends BasePresenter
             ->setSubject('Registrační formulář člena hkfree.org z.s.')
             ->setBody('Dobrý den, zasíláme Vám registrační formulář. S pozdravem hkfree.org z.s.');
         
+        //\Tracy\Dumper::dump($seznamSpravcu);
+        //exit();
         foreach ($seznamSpravcu as $so) {
             $mail->addTo($so->email);
         }
@@ -387,6 +389,7 @@ class UzivatelPresenter extends BasePresenter
         {
             list($uid, $hash) = explode('-', base64_decode($this->getParam('id')));
             
+            //\Tracy\Dumper::dump($uid);
             if($uzivatel = $this->uzivatel->getUzivatel($uid))
     	    {
                 if($uzivatel->regform_downloaded_password_sent==0 && $hash == md5($this->context->parameters["salt"].$uzivatel->zalozen))

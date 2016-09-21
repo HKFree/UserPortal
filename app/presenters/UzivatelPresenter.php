@@ -111,6 +111,7 @@ class UzivatelPresenter extends BasePresenter
         $template->prijmeni = $uzivatel->prijmeni;
         $template->forma = $uzivatel->ref('TypPravniFormyUzivatele', 'TypPravniFormyUzivatele_id')->text;
         $template->firma = $uzivatel->firma_nazev;
+        $template->ico = $uzivatel->firma_ico;
         $template->nick = $uzivatel->nick;
         $template->uid = $uzivatel->id;
         $template->heslo = $uzivatel->regform_downloaded_password_sent==0 ? $uzivatel->heslo : "-- nelze zpětně zjistit --";

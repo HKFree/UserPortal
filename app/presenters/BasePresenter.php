@@ -26,7 +26,7 @@ abstract class BasePresenter extends Nette\Application\UI\Presenter
 
 		//$uri = $this->getHttpRequest()->getUrl();
 
-		if($this->context->parameters["debug"]["fakeUser"] == false && isset($_SERVER['PHP_AUTH_USER']))
+		if($this->context->parameters["debug"]["fakeUser"] == false && isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER']!='')
 		{
 			$this->getUser()->login($_SERVER['PHP_AUTH_USER'], NULL);
 		}

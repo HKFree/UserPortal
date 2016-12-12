@@ -192,6 +192,7 @@ class UzivatelPresenter extends BasePresenter
         
         $seznamSpravcu = $this->uzivatel->getSeznamSpravcuUzivatele($this->getUser()->getIdentity()->getId());
         $apid = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId())->Ap_id;
+        $areaid = $this->ap->getAP($apid)->Oblast_id;
         
         $grid->setModel($seznamSpravcu);
         $grid->setFilterRenderType(\Grido\Components\Filters\Filter::RENDER_INNER);
@@ -202,8 +203,8 @@ class UzivatelPresenter extends BasePresenter
         
         $thisspravceOblasti = $this->spravceOblasti;
         
-        $grid->setRowCallback(function ($item, $tr) use ($thisspravceOblasti, $apid){                
-                $role = $thisspravceOblasti->getUserRole($item->id, $apid);
+        $grid->setRowCallback(function ($item, $tr) use ($thisspravceOblasti, $areaid){                
+                $role = $thisspravceOblasti->getUserRole($item->id, $areaid);
                 if($role == "SO")
                 {
                   $tr->class[] = 'cestne';
@@ -214,8 +215,8 @@ class UzivatelPresenter extends BasePresenter
         $grid->addColumnText('nick', 'Nick');
         
         
-        $grid->addColumnText('id', 'Funkce')->setCustomRender(function($item) use ($thisspravceOblasti, $apid){  
-                $role = $thisspravceOblasti->getUserRole($item->id, $apid);
+        $grid->addColumnText('id', 'Funkce')->setCustomRender(function($item) use ($thisspravceOblasti, $areaid){  
+                $role = $thisspravceOblasti->getUserRole($item->id, $areaid);
                 return $role == "SO" ? "Správce oblasti" : "Zástupce správce oblasti";
             });
 

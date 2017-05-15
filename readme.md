@@ -1,9 +1,9 @@
-#HKFree UserPortal
+# HKFree UserPortal
 Powerful [HKFree.org](http://www.hkfree.org) user managment database
 
 Developed by powerful team - Evil, ZitnyP & Bkralik
 
-##Installation
+## Installation
 
 ```bash
 git clone https://github.com/HKFree/UserPortal.git
@@ -13,7 +13,7 @@ cp app/config/config.local.DIST.neon app/config/config.local.neon
 vi app/config/config.local.neon www/.htaccess
 ```
 
-##License
+## License
 
 - Nette: New BSD License or GPL 2.0 or 3.0 (http://nette.org/license)
 - jQuery: MIT License (https://jquery.org/license)

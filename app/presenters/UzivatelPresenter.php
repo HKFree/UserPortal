@@ -348,7 +348,9 @@ class UzivatelPresenter extends BasePresenter
 
             if($uzivatel = $this->uzivatel->getUzivatel($values->id))
             {
-                $this->uzivatel->update($uzivatel->id, array('heslo'=>$values->heslonew));
+                $this->uzivatel->update($uzivatel->id, array('heslo'=>$values->heslonew, 
+                                                             'heslo_hash'=>crypt($values->heslonew, 'hk'),
+                                                             'heslo_strong_hash'=>hash('sha256', $values->heslonew)));
                 
                 $mail = new Message;
                 $mail->setFrom('moje@hkfree.org')
@@ -369,16 +371,6 @@ class UzivatelPresenter extends BasePresenter
                 $this->log->loguj('Uzivatel', $uzivatel->id, $log);
                 
                 $this->flashMessage('Heslo bylo změněno.');
-                
-                //TODO: tohle bude spatne
-                /*$so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
-                $mail = new Message;
-                $mail->setFrom($uzivatel->jmeno.' '.$uzivatel->prijmeni.' <'.$uzivatel->email.'>')
-                    ->addTo($so->email)
-                    ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
-                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org došlo ke změně hesla člena: '.$uzivatel->id);
-                $mailer = new SendmailMailer;
-                $mailer->send($mail);*/
             }
         }
 
@@ -422,16 +414,7 @@ class UzivatelPresenter extends BasePresenter
     		->setAttribute('class', 'btn btn-success btn-xs btn-white');
     	$form->onSuccess[] = array($this, 'chngpwdFormSucceded');
         $form->onValidate[] = array($this, 'validateChngpwdForm');
-    
-    	// pokud editujeme, nacteme existujici ipadresy
-    	/*$submitujeSe = ($form->isAnchored() && $form->isSubmitted());
-        if($this->getParam('id') && !$submitujeSe) {
-    	    $values = $this->uzivatel->getUzivatel($this->getParam('id'));
-    	    if($values) {
-                $form->setValues($values);
-    	    }
-    	}    */            
-    
+
     	return $form;
     }
     
@@ -455,7 +438,9 @@ class UzivatelPresenter extends BasePresenter
             if($uzivatel = $this->uzivatel->getUzivatel($values->id))
             {
                 $heslo = $this->uzivatel->generateStrongPassword();
-                $this->uzivatel->update($uzivatel->id, array('heslo'=>$heslo));
+                $this->uzivatel->update($uzivatel->id, array('heslo'=>$heslo, 
+                                                            'heslo_hash'=>crypt($heslo, 'hk'),
+                                                            'heslo_strong_hash'=>hash('sha256', $heslo)));
                 
                 $mail = new Message;
                 $mail->setFrom('moje@hkfree.org')
@@ -476,16 +461,6 @@ class UzivatelPresenter extends BasePresenter
                 $this->log->logujAnonymous('Uzivatel', $uzivatel->id, $log);
                 
                 $this->flashMessage('E-mail s heslem byl odeslán.');
-                
-                //TODO: tohle bude spatne
-                /*$so = $this->uzivatel->getUzivatel($this->getUser()->getIdentity()->getId());        
-                $mail = new Message;
-                $mail->setFrom($uzivatel->jmeno.' '.$uzivatel->prijmeni.' <'.$uzivatel->email.'>')
-                    ->addTo($so->email)
-                    ->setSubject('Změna hesla člena prostřednictvím uživatelského portálu')
-                    ->setHTMLBody('Na uživatelském portálu moje.hkfree.org došlo ke změně hesla člena: '.$uzivatel->id);
-                $mailer = new SendmailMailer;
-                $mailer->send($mail);*/
             }
         }
 

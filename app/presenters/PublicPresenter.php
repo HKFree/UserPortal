@@ -41,6 +41,7 @@ class PublicPresenter extends BasePresenter
         $seznamSpravcu = $this->uzivatel->getSeznamSpravcuUzivatele($id);
         $apid = $this->uzivatel->getUzivatel($id)->Ap_id;
         $areaid = $this->ap->getAP($apid)->Oblast_id;
+        $areaname = $this->ap->getAP($apid)->jmeno;
         
         $grid->setModel($seznamSpravcu);
         $grid->setFilterRenderType(\Grido\Components\Filters\Filter::RENDER_INNER);
@@ -59,6 +60,10 @@ class PublicPresenter extends BasePresenter
                 }          
                 return $tr;
             });
+
+        $grid->addColumnText('oblast', 'Oblast')->setCustomRender(function($item) use ($areaname){                
+            return $areaname;
+        });
         
         $grid->addColumnText('nick', 'Nick');
         

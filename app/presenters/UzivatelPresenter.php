@@ -121,9 +121,9 @@ class UzivatelPresenter extends BasePresenter
         $template->mesto = $uzivatel->mesto;
         $template->psc = $uzivatel->psc;
         $template->clenstvi = $uzivatel->TypClenstvi->text;
-        $template->nthmesic = $uzivatel->ZpusobPripojeni_id==2 ? "třetího" : "prvního";
-        $template->nthmesicname = $uzivatel->ZpusobPripojeni_id==2 ? $this->uzivatel->mesicName($uzivatel->zalozen,3) : $this->uzivatel->mesicName($uzivatel->zalozen,1);
-        $template->nthmesicdate = $uzivatel->ZpusobPripojeni_id==2 ? $this->uzivatel->mesicDate($uzivatel->zalozen,2) : $this->uzivatel->mesicDate($uzivatel->zalozen,0);
+        $template->nthmesic = "prvního";
+        $template->nthmesicname = $this->uzivatel->mesicName($uzivatel->zalozen,1);
+        $template->nthmesicdate = $this->uzivatel->mesicDate($uzivatel->zalozen,0);
         $ipadrs = $uzivatel->related('IPAdresa.Uzivatel_id')->fetchPairs('id', 'ip_adresa');
         foreach($ipadrs as $ip) {
             $subnet = $this->subnet->getSubnetOfIP($ip);

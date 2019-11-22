@@ -40,10 +40,11 @@ class Oblast extends Table
 	   $oblasti = $this->getSeznamOblasti();
 	   return($oblasti->fetchPairs('id', 'jmeno'));
     }
-    
+
     public function getSeznamSpravcu($IDoblasti) {
-	   return($this->find($IDoblasti)->related("SpravceOblasti.Oblast_id")->fetchPairs('Uzivatel_id','Uzivatel'));
-    }
+        return($this->find($IDoblasti)->related("SpravceOblasti.Oblast_id")->where('SpravceOblasti.od < NOW() AND (SpravceOblasti.do IS NULL OR SpravceOblasti.do > NOW())')->fetchPairs('Uzivatel_id','Uzivatel'));
+     }
+    
     
     public function formatujOblastiSAP($oblasti)
     {

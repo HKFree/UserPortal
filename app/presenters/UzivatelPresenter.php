@@ -39,8 +39,9 @@ class UzivatelPresenter extends BasePresenter
     private $prichoziPlatba;
     private $parameters;
     private $accountActivation;
+    private $idsConnector;
 
-    function __construct(Model\Parameters $parameters, Model\AccountActivation $accActivation, Model\PrichoziPlatba $platba, Model\UzivatelskeKonto $konto, Model\Subnet $subnet, Model\SpravceOblasti $prava, Model\CestneClenstviUzivatele $cc, Model\TypSpravceOblasti $typSpravce, Model\TypPravniFormyUzivatele $typPravniFormyUzivatele, Model\TypClenstvi $typClenstvi, Model\TypCestnehoClenstvi $typCestnehoClenstvi, Model\ZpusobPripojeni $zpusobPripojeni, Model\TechnologiePripojeni $technologiePripojeni, Model\Uzivatel $uzivatel, Model\IPAdresa $ipAdresa, Model\AP $ap, Model\TypZarizeni $typZarizeni, Model\Log $log) {
+    function __construct(Model\Parameters $parameters, Model\AccountActivation $accActivation, Model\PrichoziPlatba $platba, Model\UzivatelskeKonto $konto, Model\Subnet $subnet, Model\SpravceOblasti $prava, Model\CestneClenstviUzivatele $cc, Model\TypSpravceOblasti $typSpravce, Model\TypPravniFormyUzivatele $typPravniFormyUzivatele, Model\TypClenstvi $typClenstvi, Model\TypCestnehoClenstvi $typCestnehoClenstvi, Model\ZpusobPripojeni $zpusobPripojeni, Model\TechnologiePripojeni $technologiePripojeni, Model\Uzivatel $uzivatel, Model\IPAdresa $ipAdresa, Model\AP $ap, Model\TypZarizeni $typZarizeni, Model\Log $log, Model\IdsConnector $idsConnector) {
     	$this->spravceOblasti = $prava;
         $this->cestneClenstviUzivatele = $cc;
         $this->typSpravceOblasti = $typSpravce;
@@ -59,6 +60,7 @@ class UzivatelPresenter extends BasePresenter
         $this->prichoziPlatba = $platba; 
         $this->parameters = $parameters;
         $this->accountActivation = $accActivation;
+        $this->idsConnector = $idsConnector;
     }
     
     public function actionMoneyActivate() {
@@ -737,5 +739,24 @@ class UzivatelPresenter extends BasePresenter
                 $el->setText(Strings::truncate($item->poznamka, 100, $append='…'));
                 return $el;
                 })->setSortable()->setFilterText();
+    }
+
+    public function actionIds($id)
+    {
+        if ($id) {
+            if ($uzivatel = $this->uzivatel->getUzivatel($id)) {
+                $ipAdresy = $uzivatel->related('IPAdresa.Uzivatel_id')->order('INET_ATON(ip_adresa)');
+                $ips = array_values($ipAdresy->fetchPairs('id', 'ip_adresa'));
+                try {
+                    $this->template->idsEvents = $this->idsConnector->getEventsForIps($ips);
+                } catch (\Exception $ex) {
+                    if (Debugger::$productionMode) {
+                        throw $ex;
+                    } else {
+                        $this->template->idsEvents = array(); // silently ignore in non-prod environment
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,10 @@
 # DEVELOPEMENT
 parameters:
 	urlPrefix: ''
+	ids:
+		USERDB_IDS_USERNAME: 'api'
+		USERDB_IDS_PASSWORD: 'xxx'
+		USERDB_IDS_IPS_WHITELIST: '10.107.99.188'
 	debug:
 		https: false
 		fakeUser:
@@ -13,6 +17,10 @@ parameters:
 # PRODUCTION
 parameters:
 	urlPrefix: '/userdb'   # don't forget to edit www/.htaccess
+	ids:
+		USERDB_IDS_USERNAME: 'api'
+		USERDB_IDS_PASSWORD: 'xxx'
+		USERDB_IDS_IPS_WHITELIST: '10.107.99.188'
 	debug:
 		https: false
 		fakeUser: false

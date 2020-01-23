@@ -48,4 +48,5 @@ services:
 	cestneClenstviUzivatele: App\Model\CestneClenstviUzivatele
 	log: App\Model\Log
 	accountActivation: App\Model\AccountActivation
+	idsConnector: App\Model\IdsConnector("https://10.107.252.102", %ids.USERDB_IDS_USERNAME%, %ids.USERDB_IDS_PASSWORD%, %ids.USERDB_IDS_IPS_WHITELIST%)
 	parameters: App\Model\Parameters(%clenskyPrispevek%)

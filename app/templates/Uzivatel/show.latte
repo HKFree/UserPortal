@@ -58,7 +58,27 @@
         
         <h4>IP Adresy</h4>
         <p>{$adresyline}</p>  
+
+        <h4 style="margin-top:20px;">Události z IDS <small>za posledních 7 dní, max. 1000 záznamů</small></h4>
+        <div id="ids">
+            Načítám...
+        </div>
         
 {/ifset}
+
+<script>
+$(function(){
+    if ($('#ids')) {
+        $.ajax({
+            url : {link ids id=>$u->id},
+            type: 'GET',
+            success: function(data){
+                $('#ids').html(data);
+            }
+        });
+    }
+});
+
+</script>
 {/block}
 
